@@ -1,12 +1,13 @@
 package com.example.greenlightplanet.ui.main.viewmodel
 
-import NetworkHelper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.greenlightplanet.model.Performance
+import com.example.greenlightplanet.model.ResponseData
 import com.example.greenlightplanet.repository.MainRepository
+import com.example.greenlightplanet.utility.NetworkHelper
 import com.example.greenlightplanet.utility.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -17,9 +18,9 @@ class MainViewModel @Inject constructor(private val mainRepository: MainReposito
     private val networkHelper: NetworkHelper
     ) : ViewModel() {
 
-        private val performanceByZone = MutableLiveData<Resource<List<Performance>>>()
+        private val performanceByZone = MutableLiveData<Resource<Performance>>()
 
-        fun getPerformanceByZoneList(): LiveData<Resource<List<Performance>>> {
+        fun getPerformanceByZoneList(): LiveData<Resource<Performance>> {
             return performanceByZone
         }
 
@@ -33,7 +34,7 @@ class MainViewModel @Inject constructor(private val mainRepository: MainReposito
                 if (networkHelper.isNetworkConnected()) {
                     mainRepository.getPerformanceByZone().let {
                         if (it.isSuccessful) {
-                            performanceByZone.postValue(Resource.success(it.body()))
+                            performanceByZone.postValue(Resource.success((it.body())?.responseData))
                         } else performanceByZone.postValue(Resource.error(it.errorBody().toString(), null))
                     }
                 } else performanceByZone.postValue(Resource.error("No internet connection", null))

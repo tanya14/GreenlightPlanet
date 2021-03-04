@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
             when (it.status) {
                 SUCCESS -> {
                     listProgressBar?.visibility = View.GONE
-                    it.data?.let { users -> renderList(users) }
+                    it.data?.let { performance -> renderList(listOf(performance)) }
                     zoneListRV?.visibility = View.VISIBLE
                 }
                 LOADING -> {

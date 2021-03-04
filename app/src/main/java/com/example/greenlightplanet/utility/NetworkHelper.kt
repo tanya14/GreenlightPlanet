@@ -1,3 +1,4 @@
+package com.example.greenlightplanet.utility
 
 import android.content.Context
 import android.net.ConnectivityManager
