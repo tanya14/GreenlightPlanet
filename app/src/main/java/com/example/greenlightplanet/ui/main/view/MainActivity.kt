@@ -2,16 +2,19 @@ package com.example.greenlightplanet.ui.main.view
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ListAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.greenlightplanet.R
-import com.example.greenlightplanet.model.User
+import com.example.greenlightplanet.model.Performance
+import com.example.greenlightplanet.ui.main.adapter.ListAdapter
 import com.example.greenlightplanet.ui.main.viewmodel.MainViewModel
+import com.example.greenlightplanet.utility.Status.*
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.activity_main.*
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -27,40 +30,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = MainAdapter(arrayListOf())
-        recyclerView.addItemDecoration(
+        zoneListRV?.layoutManager = LinearLayoutManager(this)
+        adapter = ListAdapter(arrayListOf())
+        zoneListRV?.addItemDecoration(
             DividerItemDecoration(
-                recyclerView.context,
-                (recyclerView.layoutManager as LinearLayoutManager).orientation
+                zoneListRV?.context,
+                (zoneListRV?.layoutManager as LinearLayoutManager).orientation
             )
         )
-        recyclerView.adapter = adapter
+        zoneListRV?.adapter = adapter
     }
 
     private fun setupObserver() {
-        mainViewModel.users.observe(this, Observer {
+        mainViewModel.getPerformanceByZoneList().observe(this, Observer {
             when (it.status) {
-                Status.SUCCESS -> {
-                    progressBar.visibility = View.GONE
+                SUCCESS -> {
+                    listProgressBar?.visibility = View.GONE
                     it.data?.let { users -> renderList(users) }
-                    recyclerView.visibility = View.VISIBLE
+                    zoneListRV?.visibility = View.VISIBLE
                 }
-                Status.LOADING -> {
-                    progressBar.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
+                LOADING -> {
+                    listProgressBar?.visibility = View.VISIBLE
+                    zoneListRV?.visibility = View.GONE
                 }
-                Status.ERROR -> {
-                    //Handle Error
-                    progressBar.visibility = View.GONE
+                ERROR -> {
+                    listProgressBar?.visibility = View.GONE
                     Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
                 }
             }
         })
     }
 
-    private fun renderList(users: List<User>) {
-        adapter.addData(users)
+    private fun renderList(performances: List<Performance>) {
+        adapter.addData(performances)
         adapter.notifyDataSetChanged()
     }
 }

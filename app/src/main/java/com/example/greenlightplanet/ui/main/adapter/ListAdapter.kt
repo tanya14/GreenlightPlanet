@@ -4,21 +4,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.greenlightplanet.R
-import com.example.greenlightplanet.model.User
+import com.example.greenlightplanet.model.Performance
+import kotlinx.android.synthetic.main.item_layout.view.*
 
 class ListAdapter(
-    private val users: ArrayList<User>
+    private val performances: ArrayList<Performance>
 ) : RecyclerView.Adapter<ListAdapter.DataViewHolder>() {
 
     class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(user: User) {
-            itemView.textViewUserName.text = user.name
-            itemView.textViewUserEmail.text = user.email
-            Glide.with(itemView.imageViewAvatar.context)
-                .load(user.avatar)
-                .into(itemView.imageViewAvatar)
+        fun bind(performance: Performance?) {
+            itemView.zoneNameTV?.text = performance?.zone?.get(0)?.zone
         }
     }
 
@@ -30,12 +26,12 @@ class ListAdapter(
             )
         )
 
-    override fun getItemCount(): Int = users.size
+    override fun getItemCount(): Int = performances.size
 
     override fun onBindViewHolder(holder: DataViewHolder, position: Int) =
-        holder.bind(users[position])
+        holder.bind(performances[position])
 
-    fun addData(list: List<User>) {
-        users.addAll(list)
+    fun addData(list: List<Performance>) {
+        performances.addAll(list)
     }
 }

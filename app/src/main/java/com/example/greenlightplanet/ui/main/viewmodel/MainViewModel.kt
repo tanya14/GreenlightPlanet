@@ -1,20 +1,27 @@
 package com.example.greenlightplanet.ui.main.viewmodel
 
+import NetworkHelper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.greenlightplanet.model.User
+import com.example.greenlightplanet.model.Performance
 import com.example.greenlightplanet.repository.MainRepository
+import com.example.greenlightplanet.utility.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel {
-    private val mainRepository: MainRepository,
+@HiltViewModel
+class MainViewModel @Inject constructor(private val mainRepository: MainRepository,
     private val networkHelper: NetworkHelper
     ) : ViewModel() {
 
-        private val _users = MutableLiveData<Resource<List<User>>>()
-        val users: LiveData<Resource<List<User>>>
-        get() = _users
+        private val performanceByZone = MutableLiveData<Resource<List<Performance>>>()
+
+        fun getPerformanceByZoneList(): LiveData<Resource<List<Performance>>> {
+            return performanceByZone
+        }
 
         init {
             fetchUsers()
@@ -22,14 +29,14 @@ class MainViewModel {
 
         private fun fetchUsers() {
             viewModelScope.launch {
-                _users.postValue(Resource.loading(null))
+                performanceByZone.postValue(Resource.loading(null))
                 if (networkHelper.isNetworkConnected()) {
-                    mainRepository.getUsers().let {
+                    mainRepository.getPerformanceByZone().let {
                         if (it.isSuccessful) {
-                            _users.postValue(Resource.success(it.body()))
-                        } else _users.postValue(Resource.error(it.errorBody().toString(), null))
+                            performanceByZone.postValue(Resource.success(it.body()))
+                        } else performanceByZone.postValue(Resource.error(it.errorBody().toString(), null))
                     }
-                } else _users.postValue(Resource.error("No internet connection", null))
+                } else performanceByZone.postValue(Resource.error("No internet connection", null))
             }
         }
 }
