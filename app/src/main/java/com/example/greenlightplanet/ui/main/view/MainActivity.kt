@@ -22,6 +22,9 @@ class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private lateinit var adapter: ListAdapter
     private var performances: Performance? = null
+    private var zones: ArrayList<Zone>? = ArrayList()
+    private var regions: ArrayList<Region>? = ArrayList()
+    private var areas: ArrayList<Area>? = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,13 +91,13 @@ class MainActivity : AppCompatActivity() {
                     renderList(performances?.country)
                 }
                 is Region -> {
-                    renderList(performances?.zone)
+                    renderList(zones)
                 }
                 is Area -> {
-                    renderList(performances?.region)
+                    renderList(regions)
                 }
                 is Employee -> {
-                    renderList(performances?.area)
+                    renderList(areas)
                 }
             }
         }
@@ -112,6 +115,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 renderList(clickedTempList)
+                zones = clickedTempList
             }
             is Zone -> {
                 val clickedTempList = arrayListOf<Region>()
@@ -123,6 +127,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 renderList(clickedTempList)
+                regions = clickedTempList
             }
             is Region -> {
                 val clickedTempList = arrayListOf<Area>()
@@ -134,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 renderList(clickedTempList)
+                areas = clickedTempList
             }
             is Area -> {
                 val clickedTempList = arrayListOf<Employee>()
