@@ -2,7 +2,9 @@ package com.example.greenlightplanet.ui.main.view
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -27,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var zones: ArrayList<Zone>? = ArrayList()
     private var regions: ArrayList<Region>? = ArrayList()
     private var areas: ArrayList<Area>? = ArrayList()
+    private var searchViewItem: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,35 +82,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderList(performances: List<Any>?) {
-        performances?.let { adapter.addData(it) }
+        performances?.let { adapter.addData(it.toMutableList()) }
         adapter.notifyDataSetChanged()
     }
 
     override fun onBackPressed() {
-        val tempList: List<*>? = adapter.getAdapterDataList()
-        if (tempList?.isNotEmpty() == true) {
-            when (tempList[0]) {
-                is Country -> {
-                    finishAffinity()
-                }
-                is Zone -> {
-                    renderList(performances?.country)
-                    supportActionBar?.title = getString(R.string.country)
-                }
-                is Region -> {
-                    renderList(zones)
-                    supportActionBar?.title = getString(R.string.zone)
-                }
-                is Area -> {
-                    renderList(regions)
-                    supportActionBar?.title = getString(R.string.region)
-                }
-                is Employee -> {
-                    renderList(areas)
-                    supportActionBar?.title = getString(R.string.area)
-                }
+        when (adapter.getAdapterItem()) {
+            is Country -> {
+                finishAffinity()
+            }
+            is Zone -> {
+                renderList(performances?.country)
+                supportActionBar?.title = getString(R.string.country)
+            }
+            is Region -> {
+                renderList(zones)
+                supportActionBar?.title = getString(R.string.zone)
+            }
+            is Area -> {
+                renderList(regions)
+                supportActionBar?.title = getString(R.string.region)
+            }
+            is Employee -> {
+                renderList(areas)
+                supportActionBar?.title = getString(R.string.area)
             }
         }
+        searchViewItem?.isVisible = adapter.getAdapterItem() is Employee
     }
 
     private fun renderListAfterItemClicked(clickedItem: Any?) {
@@ -163,26 +164,27 @@ class MainActivity : AppCompatActivity() {
                 renderList(clickedTempList)
                 supportActionBar?.title = getString(R.string.employee)
             }
-            is Employee -> {
-                return
-            }
         }
+        searchViewItem?.isVisible = adapter.getAdapterItem() is Employee
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.menu, menu)
-        val searchViewItem = menu?.findItem(R.id.search_bar)
+        searchViewItem = menu?.findItem(R.id.search_bar)
         val searchView = searchViewItem?.actionView as SearchView?
+        searchViewItem?.isVisible = adapter.getAdapterItem() is Employee
 
         searchView?.isIconified = true
-        searchView?.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+        searchView?.imeOptions = EditorInfo.IME_ACTION_DONE
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                return true
+                return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                return true
+                adapter.filter.filter(newText)
+                return false
             }
 
         })
