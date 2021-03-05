@@ -5,6 +5,6 @@ import retrofit2.Response
 
 interface ApiHelper {
 
-        suspend fun getPerformanceByZone(): Response<ResponseData>
+    suspend fun getPerformanceByZone(): Response<ResponseData>?
 
 }

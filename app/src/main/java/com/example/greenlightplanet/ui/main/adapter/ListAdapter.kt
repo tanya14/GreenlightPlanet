@@ -5,16 +5,41 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.greenlightplanet.R
-import com.example.greenlightplanet.model.Performance
+import com.example.greenlightplanet.model.*
 import kotlinx.android.synthetic.main.item_layout.view.*
 
-class ListAdapter(
-    private val performances: ArrayList<Performance>
-) : RecyclerView.Adapter<ListAdapter.DataViewHolder>() {
+class ListAdapter(onListItemClick: OnListItemClick) : RecyclerView.Adapter<ListAdapter.DataViewHolder>() {
 
-    class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        fun bind(performance: Performance?) {
-            itemView.zoneNameTV?.text = performance?.zone?.get(0)?.zone
+    private var performances: List<*>? = null
+    private var onListItemClick: OnListItemClick? = null
+
+    init {
+        this.onListItemClick = onListItemClick
+    }
+
+    inner class DataViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(performance: Any?) {
+            when (performance) {
+                is Country -> {
+                    itemView.zoneNameTV?.text = (performance).country
+                }
+                is Zone -> {
+                    itemView.zoneNameTV?.text = (performance).zone
+                }
+                is Region -> {
+                    itemView.zoneNameTV?.text = (performance).region
+                }
+                is Area -> {
+                    itemView.zoneNameTV?.text = (performance).area
+                }
+                is Employee -> {
+                    itemView.zoneNameTV?.text = (performance).name
+                }
+            }
+
+            itemView.setOnClickListener {
+                onListItemClick?.onListItemClicked(performance)
+            }
         }
     }
 
@@ -26,12 +51,20 @@ class ListAdapter(
             )
         )
 
-    override fun getItemCount(): Int = performances.size
+    override fun getItemCount(): Int = performances?.size ?: 0
 
     override fun onBindViewHolder(holder: DataViewHolder, position: Int) =
-        holder.bind(performances[position])
+        holder.bind(performances?.get(position))
 
-    fun addData(list: List<Performance>) {
-        performances.addAll(list)
+    fun addData(list: List<*>) {
+        performances = list
+    }
+
+    fun getAdapterDataList(): List<*>? {
+        return performances
+    }
+
+    interface OnListItemClick {
+        fun onListItemClicked(clickedItem: Any?)
     }
 }
