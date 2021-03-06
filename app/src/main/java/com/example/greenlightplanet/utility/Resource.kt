@@ -1,6 +1,6 @@
 package com.example.greenlightplanet.utility
 
-data class Resource<out T>(val status: Status, val data: T?, val message: String?) {
+data class Resource<T>(var status: Status, var data: T?, val message: String?) {
 
     companion object {
 

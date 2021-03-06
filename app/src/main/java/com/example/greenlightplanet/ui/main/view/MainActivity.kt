@@ -1,6 +1,9 @@
 package com.example.greenlightplanet.ui.main.view
 
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -16,7 +19,9 @@ import com.example.greenlightplanet.R
 import com.example.greenlightplanet.model.*
 import com.example.greenlightplanet.ui.main.adapter.ListAdapter
 import com.example.greenlightplanet.ui.main.viewmodel.MainViewModel
+import com.example.greenlightplanet.utility.Resource
 import com.example.greenlightplanet.utility.Status.*
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -30,16 +35,19 @@ class MainActivity : AppCompatActivity() {
     private var regions: ArrayList<Region>? = ArrayList()
     private var areas: ArrayList<Area>? = ArrayList()
     private var searchViewItem: MenuItem? = null
+    private var doubleBackToExitPressedOnce = false
+    private var sharedPref: SharedPreferences? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setupUI()
         setupObserver()
-        supportActionBar?.title = getString(R.string.country)
     }
 
     private fun setupUI() {
+        sharedPref = getSharedPreferences(SHARED_KEY, MODE_PRIVATE)
+        supportActionBar?.title = getString(R.string.country)
         zoneListRV?.layoutManager = LinearLayoutManager(this)
         adapter = ListAdapter(object : ListAdapter.OnListItemClick {
             override fun onListItemClicked(clickedItem: Any?) {
@@ -58,16 +66,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupObserver() {
         mainViewModel.getPerformanceByZoneList().observe(this, Observer {
-            when (it.status) {
+            val performanceObj = it
+            if (performanceObj.data == null) {
+                performanceObj.data = getOfflineData() as Performance?
+                if (performanceObj.data != null) {
+                    performanceObj.status = SUCCESS
+                    Toast.makeText(this, performanceObj.message, Toast.LENGTH_LONG).show()
+                }
+            }
+            when (performanceObj.status) {
                 SUCCESS -> {
                     listProgressBar?.visibility = View.GONE
-                    it.data?.let { performance ->
+                    performanceObj.data?.let { performance ->
                         performances = performance
                         ((performance.country?.let { country ->
                             renderList(country)
                         }))
                     }
                     zoneListRV?.visibility = View.VISIBLE
+                    saveDataForOfflineMode(performanceObj.data)
                 }
                 LOADING -> {
                     listProgressBar?.visibility = View.VISIBLE
@@ -75,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 ERROR -> {
                     listProgressBar?.visibility = View.GONE
-                    Toast.makeText(this, it.message, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, performanceObj.message, Toast.LENGTH_LONG).show()
                 }
             }
         })
@@ -89,7 +106,18 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         when (adapter.getAdapterItem()) {
             is Country -> {
-                finishAffinity()
+                if (doubleBackToExitPressedOnce) {
+                    super.onBackPressed()
+                    return
+                }
+                this.doubleBackToExitPressedOnce = true
+                Toast.makeText(this, getString(R.string.backPressAgainMsg), Toast.LENGTH_SHORT)
+                    .show()
+
+                Handler(Looper.getMainLooper()).postDelayed(
+                    { doubleBackToExitPressedOnce = false },
+                    2000
+                )
             }
             is Zone -> {
                 renderList(performances?.country)
@@ -189,5 +217,24 @@ class MainActivity : AppCompatActivity() {
 
         })
         return true
+    }
+
+    private fun saveDataForOfflineMode(objectToSave: Performance?) {
+        val prefsEditor: SharedPreferences.Editor? = sharedPref?.edit()
+        val gson = Gson()
+        val json = gson.toJson(objectToSave)
+        prefsEditor?.putString(SHARED_KEY_OBJECT, json)
+        prefsEditor?.apply()
+    }
+
+    private fun getOfflineData(): Any? {
+        val gson = Gson()
+        val json: String? = sharedPref?.getString(SHARED_KEY_OBJECT, null)
+        return gson.fromJson(json, Performance::class.java)
+    }
+
+    companion object {
+        private const val SHARED_KEY = "SHARED_KEY"
+        private const val SHARED_KEY_OBJECT = "SHARED_KEY_OBJECT"
     }
 }

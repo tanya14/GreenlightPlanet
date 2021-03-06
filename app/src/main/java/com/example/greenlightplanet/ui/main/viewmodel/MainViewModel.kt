@@ -1,5 +1,7 @@
 package com.example.greenlightplanet.ui.main.viewmodel
 
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -42,7 +44,9 @@ class MainViewModel @Inject constructor(
                         )
                     )
                 }
-            } else performanceByZone.postValue(Resource.error("No internet connection", null))
+            } else {
+                performanceByZone.postValue(Resource.error("No internet connection", null))
+            }
         }
     }
 }

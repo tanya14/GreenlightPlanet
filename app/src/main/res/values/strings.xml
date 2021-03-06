@@ -5,4 +5,5 @@
     <string name="region">Region</string>
     <string name="area">Area</string>
     <string name="employee">Employee</string>
+    <string name="backPressAgainMsg">Please click BACK again to exit</string>
 </resources>
